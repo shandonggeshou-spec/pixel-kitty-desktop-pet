@@ -2,12 +2,25 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-TARGET_DIR="${TRAE_PETS_DIR:-$HOME/.trae/cli/pets}/pixel-kitty"
+TARGET_DIR="${PIXEL_KITTY_APP_DIR:-$HOME/Applications}"
+TARGET_APP="$TARGET_DIR/PixelKitty.app"
 
 mkdir -p "$TARGET_DIR"
-cp "$ROOT_DIR/pet.json" "$TARGET_DIR/pet.json"
-cp "$ROOT_DIR/spritesheet.png" "$TARGET_DIR/spritesheet.png"
-cp "$ROOT_DIR/contact-sheet.png" "$TARGET_DIR/contact-sheet.png"
+rm -rf "$TARGET_APP"
+ditto "$ROOT_DIR/dist/PixelKitty.app" "$TARGET_APP"
 
-echo "Installed Pixel Kitty to $TARGET_DIR"
-echo "Open TRAE settings, refresh custom pets if needed, then select Pixel Kitty."
+echo "Installed Pixel Kitty to $TARGET_APP"
+if [[ ! -x "$TARGET_APP/Contents/MacOS/PixelKitty" ]]; then
+  echo "Install failed: app executable is missing." >&2
+  exit 1
+fi
+
+if [[ "${PIXEL_KITTY_SKIP_OPEN:-0}" == "1" ]]; then
+  echo "Skipped opening Pixel Kitty."
+  exit 0
+fi
+
+echo "Opening Pixel Kitty..."
+if ! open "$TARGET_APP"; then
+  echo "Pixel Kitty is installed. If macOS blocks opening it, right-click PixelKitty.app and choose Open."
+fi

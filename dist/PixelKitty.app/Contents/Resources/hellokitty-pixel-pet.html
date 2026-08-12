@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Pixel Kitty · Codex Pet</title>
+<style>
+  :root{
+    color-scheme:light;
+    --ink:#302d31;
+    --paper:#fffdf9;
+    --pink:#ef4268;
+    --yellow:#ffc83d;
+    --blue:#41527e;
+  }
+  *{ box-sizing:border-box; }
+  body{
+    margin:0; min-height:100vh; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:20px; padding:24px;
+    color:var(--ink);
+    background-color:#f7f0ef;
+    background-image:
+      linear-gradient(45deg,#f2e8e7 25%,transparent 25%),
+      linear-gradient(-45deg,#f2e8e7 25%,transparent 25%),
+      linear-gradient(45deg,transparent 75%,#f2e8e7 75%),
+      linear-gradient(-45deg,transparent 75%,#f2e8e7 75%);
+    background-position:0 0,0 16px,16px -16px,-16px 0;
+    background-size:32px 32px;
+    font-family:Menlo,Monaco,"SFMono-Regular","PingFang SC",monospace;
+  }
+  .tabs{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+  .tabs button{
+    min-width:88px; padding:8px 14px; border:3px solid var(--ink);
+    border-radius:0; background:#fff; color:var(--ink);
+    box-shadow:4px 4px 0 #d8ccca;
+    font:700 14px/1 Menlo,monospace; cursor:pointer;
+  }
+  .tabs button:hover{ transform:translate(-1px,-1px); box-shadow:5px 5px 0 #d8ccca; }
+  .tabs button:active{ transform:translate(3px,3px); box-shadow:1px 1px 0 #d8ccca; }
+  .tabs button.active{ background:var(--ink); color:#fff; box-shadow:4px 4px 0 var(--pink); }
+  .stage{
+    width:min(78vmin,560px); aspect-ratio:1; position:relative;
+    overflow:hidden; display:flex; align-items:center; justify-content:center;
+    border:4px solid var(--ink); background:var(--paper);
+    box-shadow:10px 10px 0 #dfd2d0;
+  }
+  svg#pet{
+    width:100%; height:100%; display:block;
+    image-rendering:pixelated; shape-rendering:crispEdges;
+  }
+  #armL,#armR,#armRaisedL,#head,#eyeL,#eyeR,#kitty,#signG{ transform-box:view-box; }
+  #eyeL,#eyeR{ transform-box:fill-box; transform-origin:center; }
+  #armRaisedL,#signG{ opacity:0; pointer-events:none; }
+
+  .stage[data-state="idle"] #kitty{
+    transform-origin:120px 150px;
+    animation:pixelBreathe 3.4s steps(2,end) infinite;
+  }
+  .stage[data-state="idle"] #eyeL,
+  .stage[data-state="idle"] #eyeR{
+    animation:pixelBlink 4.4s steps(1,end) infinite;
+  }
+  .stage[data-state="greet"] #kitty{
+    transform-origin:120px 150px;
+    animation:pixelBreathe 3.4s steps(2,end) infinite;
+  }
+  .stage[data-state="greet"] #eyeL,
+  .stage[data-state="greet"] #eyeR{
+    animation:pixelBlink 4.4s steps(1,end) infinite;
+  }
+  @keyframes pixelBreathe{
+    0%,100%{ transform:translateY(0); }
+    50%{ transform:translateY(-2px); }
+  }
+  @keyframes pixelBlink{
+    0%,90%,96%,100%{ transform:scaleY(1); }
+    92%,94%{ transform:scaleY(.18); }
+  }
+
+  .stage[data-state="greet"] #armL{
+    opacity:0;
+  }
+  .stage[data-state="greet"] #armRaisedL{
+    opacity:1;
+    transform-origin:74px 122px;
+    animation:pixelWave 1.15s steps(1,end) infinite;
+  }
+  .stage[data-state="greet"] #head{
+    transform-origin:120px 92px;
+    animation:greetTilt 1.15s steps(1,end) infinite;
+  }
+  @keyframes pixelWave{
+    0%,100%{ transform:rotate(0); }
+    15%{ transform:rotate(-8deg) translate(-1px,-2px); }
+    32%{ transform:rotate(7deg) translate(1px,-1px); }
+    49%{ transform:rotate(-9deg) translate(-1px,-3px); }
+    66%{ transform:rotate(6deg) translate(1px,-1px); }
+    83%{ transform:rotate(-8deg) translate(-1px,-2px); }
+  }
+  @keyframes greetTilt{
+    0%,100%{ transform:translate(0,0); }
+    15%,83%{ transform:translate(-2px,1px); }
+  }
+  .bubble{
+    position:absolute; left:68%; top:22%; padding:8px 12px;
+    opacity:0; pointer-events:none; border:3px solid var(--ink);
+    border-radius:0; background:#fff; color:var(--pink);
+    box-shadow:4px 4px 0 var(--ink);
+    font:700 min(3.4vmin,22px)/1 Menlo,monospace;
+  }
+  .bubble::after{
+    content:""; position:absolute; left:12px; bottom:-9px;
+    width:8px; height:8px; background:#fff;
+    border-right:3px solid var(--ink); border-bottom:3px solid var(--ink);
+  }
+  .stage[data-state="greet"] .bubble{
+    animation:pixelPop 1.15s steps(1,end) infinite;
+  }
+  @keyframes pixelPop{
+    0%,100%{ opacity:0; transform:translateY(4px); }
+    15%,83%{ opacity:1; transform:translateY(0); }
+  }
+
+  .stage[data-state="working"] #head{
+    transform-origin:120px 94px;
+    animation:workNod .84s steps(2,end) infinite;
+  }
+  .stage[data-state="working"] #armL{
+    transform-origin:96px 130px;
+    animation:typeL .36s steps(1,end) infinite;
+  }
+  .stage[data-state="working"] #armR{
+    transform-origin:144px 130px;
+    animation:typeR .36s steps(1,end) infinite;
+  }
+  @keyframes workNod{
+    0%,100%{ transform:translateY(0); }
+    50%{ transform:translateY(2px); }
+  }
+  @keyframes typeL{
+    0%,49%{ transform:translate(0,0); }
+    50%,100%{ transform:translate(1px,2px); }
+  }
+  @keyframes typeR{
+    0%,49%{ transform:translate(-1px,2px); }
+    50%,100%{ transform:translate(0,0); }
+  }
+  .keyFlash{ opacity:0; }
+  .stage[data-state="working"] .keyFlash.a{ animation:keyA .36s steps(1,end) infinite; }
+  .stage[data-state="working"] .keyFlash.b{ animation:keyB .36s steps(1,end) infinite; }
+  @keyframes keyA{ 0%,49%{opacity:0} 50%,100%{opacity:1} }
+  @keyframes keyB{ 0%,49%{opacity:1} 50%,100%{opacity:0} }
+
+  .stage[data-state="done"] #armL,
+  .stage[data-state="help"] #armL{ opacity:0; }
+  .stage[data-state="done"] #armRaisedL,
+  .stage[data-state="help"] #armRaisedL{
+    opacity:1; animation:raisedPaw 1s steps(2,end) infinite;
+  }
+  .stage[data-state="done"] #signG,
+  .stage[data-state="help"] #signG{
+    opacity:1; animation:signPop 1s steps(2,end) infinite;
+  }
+  .stage[data-state="done"] #kitty{
+    transform-origin:120px 150px;
+    animation:happyHop 1s steps(2,end) infinite;
+  }
+  .stage[data-state="help"] #head{
+    transform-origin:120px 94px;
+    animation:helpLook 1.2s steps(2,end) infinite;
+  }
+  @keyframes raisedPaw{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(-2px)} }
+  @keyframes signPop{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(-2px)} }
+  @keyframes happyHop{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
+  @keyframes helpLook{ 0%,100%{transform:translateX(0)} 50%{transform:translateX(-2px)} }
+  #signFace.done{ fill:#69d171; }
+  #signFace.help{ fill:#ffd34e; }
+
+  .hint{
+    max-width:560px; padding:10px 14px; border-left:4px solid var(--pink);
+    background:rgba(255,255,255,.82); font-size:13px;
+    text-align:center; line-height:1.7;
+  }
+  .hint b{ color:#d92f56; }
+  body.desktop{
+    min-height:100vh; padding:0; gap:0; overflow:hidden;
+    background:transparent;
+    -webkit-user-select:none; user-select:none;
+  }
+  body.desktop .tabs,
+  body.desktop .hint{ display:none; }
+  body.desktop .stage{
+    width:100vw; height:100vh; aspect-ratio:auto;
+    border:0; background:transparent; box-shadow:none;
+  }
+  body.desktop .scene-bg,
+  body.desktop .floor{ opacity:0; }
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{ animation-duration:.001ms!important; animation-iteration-count:1!important; }
+  }
+</style>
+</head>
+<body>
+  <div class="tabs" aria-label="宠物状态">
+    <button data-state="idle" class="active">idle</button>
+    <button data-state="working">working</button>
+    <button data-state="done">done</button>
+    <button data-state="help">help</button>
+  </div>
+
+  <div class="stage" id="stage" data-state="idle" title="把鼠标放到 Kitty 身上">
+    <svg id="pet" viewBox="0 0 240 214" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+      <rect class="scene-bg" width="240" height="214" fill="#fffdf9"/>
+      <path class="floor" d="M0 174H240V214H0Z" fill="#ded9d3"/>
+      <path class="floor" d="M0 174H240V178H0Z" fill="#c9c3bd"/>
+
+      <g id="kitty">
+        <g id="bodyG">
+          <path d="M82 116H158V122H164V176H76V136H82Z" fill="#302d31"/>
+          <path d="M88 120H152V126H158V176H82V138H88Z" fill="#fff"/>
+          <path d="M98 122H112V130H120V138H108V134H98Z" fill="#ef4268"/>
+          <path d="M142 122H128V130H120V138H132V134H142Z" fill="#ef4268"/>
+          <path d="M116 130H124V138H116Z" fill="#ffc83d"/>
+        </g>
+
+        <g id="head">
+          <path d="M60 60V42H66V30H74V20H86V26H96V38H144V34H152V24H164V18H174V26H182V38H186V50H190V60H192V100H188V110H180V118H166V124H148V128H92V124H74V118H64V112H58V104H56V60H60Z"
+                fill="#fff" stroke="#302d31" stroke-width="4" stroke-linejoin="miter"/>
+          <g fill="#302d31">
+            <path d="M42 78H66V82H42Z"/><path d="M38 91H64V95H38Z"/><path d="M42 104H66V108H42Z"/>
+            <path d="M174 78H198V82H174Z"/><path d="M176 91H202V95H176Z"/><path d="M174 104H198V108H174Z"/>
+          </g>
+          <g id="eyeL" fill="#302d31">
+            <path d="M92 78H98V81H100V93H98V96H92V93H90V81H92Z"/>
+          </g>
+          <g id="eyeR" fill="#302d31">
+            <path d="M142 78H148V81H150V93H148V96H142V93H140V81H142Z"/>
+          </g>
+          <path d="M116 92H124V94H128V100H124V102H116V100H112V94H116Z" fill="#ffc83d"/>
+          <path d="M76 102H84V106H76Z" fill="#ffd6df"/>
+          <path d="M156 102H164V106H156Z" fill="#ffd6df"/>
+          <g id="bow" transform="translate(180 36) scale(1.13) translate(-180 -36)">
+            <path d="M154 28H160V20H172V24H180V44H172V48H160V42H154Z"
+                  fill="#ef4268" stroke="#302d31" stroke-width="4" stroke-linejoin="miter"/>
+            <path d="M188 26H200V32H206V44H202V54H188V48H182V32H188Z"
+                  fill="#ef4268" stroke="#302d31" stroke-width="4" stroke-linejoin="miter"/>
+            <path d="M176 28H190V46H176Z" fill="#f45375" stroke="#302d31" stroke-width="4"/>
+            <path d="M160 24H168V28H160Z" fill="#ff7893"/>
+            <path d="M194 32H200V38H194Z" fill="#ff7893"/>
+          </g>
+        </g>
+
+        <!-- keyboard is on Kitty's side of the laptop, receding toward her -->
+        <path d="M82 132H158L170 150H70Z" fill="#302d31"/>
+        <path d="M86 136H154L162 146H78Z" fill="#c6c9cd"/>
+        <g fill="#8e949b">
+          <rect x="88" y="138" width="8" height="3"/><rect x="100" y="138" width="8" height="3"/>
+          <rect x="112" y="138" width="8" height="3"/><rect x="124" y="138" width="8" height="3"/>
+          <rect x="136" y="138" width="8" height="3"/>
+          <rect x="94" y="143" width="8" height="3"/><rect x="106" y="143" width="8" height="3"/>
+          <rect x="118" y="143" width="8" height="3"/><rect x="130" y="143" width="8" height="3"/>
+        </g>
+        <g class="keyFlash a" fill="#ef4268">
+          <rect x="98" y="140" width="6" height="4"/>
+        </g>
+        <g class="keyFlash b" fill="#ffc83d">
+          <rect x="136" y="140" width="6" height="4"/>
+        </g>
+
+        <!-- short rounded forearms; their lower halves are hidden behind the screen -->
+        <g id="armL">
+          <path d="M88 126H100V130H104V140H100V144H90V140H86V130H88Z" fill="#302d31"/>
+          <path d="M92 130H98V132H100V138H98V140H92V138H90V132H92Z" fill="#fff"/>
+          <path d="M92 136H102V138H106V146H102V150H92V148H88V140H92Z" fill="#302d31"/>
+          <path d="M94 140H100V142H102V146H100V148H94V146H92V142H94Z" fill="#fff"/>
+        </g>
+        <g id="armR">
+          <path d="M140 126H152V130H154V140H150V144H140V140H136V130H140Z" fill="#302d31"/>
+          <path d="M142 130H148V132H150V138H148V140H142V138H140V132H142Z" fill="#fff"/>
+          <path d="M138 136H148V140H152V148H148V150H138V146H134V138H138Z" fill="#302d31"/>
+          <path d="M140 140H146V142H148V146H146V148H140V146H138V142H140Z" fill="#fff"/>
+        </g>
+
+        <!-- viewer sees the back of the screen; keyboard remains behind it -->
+        <path d="M70 146H170V180H166V184H74V180H70Z" fill="#302d31"/>
+        <path d="M76 152H164V176H76Z" fill="#b9bdc2"/>
+        <path d="M80 156H158V160H80Z" fill="#d7dadd"/>
+        <path d="M116 162H124V170H116Z" fill="#dfe2e4"/>
+        <path d="M66 184H174V188H182V192H58V188H66Z" fill="#302d31"/>
+        <path d="M70 186H170V188H174V190H66V188H70Z" fill="#aeb3b8"/>
+
+        <g id="signG">
+          <path d="M68 40H72V108H68Z" fill="#302d31"/>
+          <path d="M20 6H126V44H20Z" fill="#302d31"/>
+          <rect id="signFace" class="done" x="26" y="12" width="94" height="26"/>
+          <text id="signText" x="73" y="32" text-anchor="middle"
+                font-family="Menlo,monospace" font-weight="900" font-size="20" fill="#302d31">done</text>
+        </g>
+        <g id="armRaisedL">
+          <path d="M88 122H100V136H92V140H82V136H76V130H70V122H66V112H76V118H82V124H88Z" fill="#302d31"/>
+          <path d="M90 126H96V132H90V136H84V132H78V126H72V118H74V122H80V128H86V130H90Z" fill="#fff"/>
+          <path d="M62 102H76V106H80V116H76V120H62V116H58V106H62Z" fill="#302d31"/>
+          <path d="M66 106H72V108H76V114H72V116H66V114H62V108H66Z" fill="#fff"/>
+        </g>
+
+        <g>
+          <path d="M176 170H218V178H172V174H176Z" fill="#fff" stroke="#aeb2b6" stroke-width="2"/>
+          <path d="M180 164H222V172H176V168H180Z" fill="#fff" stroke="#aeb2b6" stroke-width="2"/>
+          <path d="M184 158H226V166H180V162H184Z" fill="#fff" stroke="#aeb2b6" stroke-width="2"/>
+          <path d="M188 161H216V163H188Z" fill="#c9ccd0"/>
+        </g>
+      </g>
+    </svg>
+    <div class="bubble">hi! ♥</div>
+  </div>
+
+  <div class="hint">
+    <b>idle</b> 像素眨眼 · 悬停举爪打招呼 ·
+    <b>working</b> 两只爪子逐帧交替敲键盘 ·
+    <b>done/help</b> 用自己的左手举牌
+  </div>
+
+<script>
+  const stage = document.getElementById('stage');
+  const signFace = document.getElementById('signFace');
+  const signText = document.getElementById('signText');
+  const buttons = document.querySelectorAll('.tabs button');
+  if(new URLSearchParams(location.search).get('desktop') === '1'){
+    document.body.classList.add('desktop');
+  }
+  function setPetState(state){
+    stage.dataset.state = state;
+    buttons.forEach(item => item.classList.toggle('active', item.dataset.state === state || (state === 'greet' && item.dataset.state === 'idle')));
+    if(state === 'done'){
+      signFace.setAttribute('class','done');
+      signText.textContent = 'done';
+    }
+    if(state === 'help'){
+      signFace.setAttribute('class','help');
+      signText.textContent = 'help';
+    }
+  }
+  buttons.forEach(button => {
+    button.addEventListener('click', () => {
+      setPetState(button.dataset.state);
+    });
+  });
+</script>
+</body>
+</html>
