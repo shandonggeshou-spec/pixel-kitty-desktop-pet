@@ -2,8 +2,6 @@
 
 A cute pixel-style macOS desktop pet for TRAE CLI / Codex. It floats on your desktop, follows Codex activity, blinks while idle, waves when you hover on the character, types while work is running, and raises `done` / `help` signs for completion or assistance states.
 
-![Pixel Kitty preview](./optional-trae-custom-pet/contact-sheet.png)
-
 ## Download
 
 Download the desktop app package:
@@ -42,28 +40,9 @@ The app reads local TRAE/Codex session logs from `~/.trae/cli/sessions` to infer
 
 - `dist/PixelKitty.app` - the standalone desktop app.
 - `dist/PixelKitty-macOS.zip` - downloadable macOS app package.
+- `dist/启动 Pixel Kitty.command` - optional launcher for the app.
 - `standalone/PixelKittyApp.swift` - macOS app source.
 - `standalone/hellokitty-pixel-pet.html` - animated pet UI loaded by the app.
-- `optional-trae-custom-pet/` - optional TRAE custom pet resource package.
-- `source/` - Swift scripts used to regenerate the optional TRAE sprite sheet.
-
-## Optional TRAE Custom Pet
-
-The folder `optional-trae-custom-pet/` contains the separate TRAE custom pet package:
-
-```text
-pet.json
-spritesheet.png
-contact-sheet.png
-```
-
-To install that version manually, copy those files to:
-
-```text
-~/.trae/cli/pets/pixel-kitty
-```
-
-This optional version is different from the standalone desktop app. The desktop app in `dist/` is the main release.
 
 ## Notes
 
